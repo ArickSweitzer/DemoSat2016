@@ -1,0 +1,56 @@
+#before running for the first time assure Pi and SenseHat is up to date
+#Under terminal run
+#sudo apt-get update
+#sudo apt-get install sense-hat
+#sudo pip-3.2 install pill
+#Reboot the system
+from timeit import default_timer as timer
+import pexpect
+import os
+from subprocess import call #Allows Python to run Terminal Commands
+from sense_hat import SenseHat #import SenseHat Library
+sense = SenseHat () #Set varriable Sense to library script SenseHat
+start = timer ()
+#count varraible for loop break
+#can use bassic VALUE = Sense.get_VALUE outline
+alt = 0.0
+#-----------------------
+
+while True:
+    count = 0
+    with open("SenseHat.txt","w") as text_file:
+        #Context manager, file is closed automatically for you
+        while count < 100:
+#Humidity reading
+            humidity = sense.get_humidity()
+            print("Humidity: %s" % humidity) #all prints for debugging 
+            text_file.write("Humidity: %s" % humdity)
+#Tempurature reading
+            temp = sense.get_temperature()
+            print("Temperature: %s %%C" % temp) #all prints for debugging 
+            text_file.write("Humidity: %s C" % temp)
+#Pressure reading
+            pressure = sense.get_pressure()
+            print("Pressure: %s %%mPa" % pressure) #all prints for debugging 
+            text_file.write("Pressure: %s %%mPa" % pressure)
+#Pressure as Altitude
+            alt = ((1-(pressure/1013.25)**0.190284)*145366.45)*0.3048
+            print (alt)
+            text_file.write("Altitude:%s %%m" % alt)
+#IMU readings
+            sense.set_imu_config(True,True,True)
+#Note: imu_config is asking boolean to activate (Compass, Gyro, Acceleromiter)
+#Orientation Readings (in degrees, change string to _degrees to _radians for radians)
+
+            orientation = sense.get_orientation_degrees()
+            print("p: (pitch), r: (roll), y: (yaw)".format(**orientation))
+            text_file.write("p: (pitch), r: (roll), y: (yaw)".format(**orientation))
+            
+            count = count + 1
+            end = timer()
+            time = (end-start)
+            print(time)
+            text_file.write("time: %s %%sec" % time)
+            
+            if count == 100:
+                os.system('scp SenseHat.txt 192.168.1.2:/home/pi/Desktop')
